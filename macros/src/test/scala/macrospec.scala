@@ -1,5 +1,6 @@
 import reactivemongo.bson._
 import org.specs2.mutable._
+import reactivemongo.bson.Macros.Options.Verbose
 
 class Macros extends Specification {
   type Handler[A] = BSONDocumentReader[A] with BSONDocumentWriter[A]  with BSONHandler[BSONDocument, A]
@@ -16,6 +17,7 @@ class Macros extends Specification {
   case class Pet(name: String, owner: Person)
   case class Primitives(dbl: Double, str: String, bl: Boolean, int: Int, long: Long)
   case class Optional(name: String, value: Option[String])
+  case class HasID(_id: Option[String], name: String)
   case class Single(value: String)
   case class OptionalSingle(value: Option[String])
   case class SingleTuple(value: (String, String))
@@ -121,6 +123,12 @@ class Macros extends Specification {
       val none = Optional("none", None)
       roundtrip(some, format)
       roundtrip(none, format)
+    }
+
+    "support mongo ObjectID" in {
+      val format = Macros.handlerOpts[HasID, Verbose]
+      roundtrip(HasID(None, "no _id"), format)
+      roundtrip(HasID(Some("1234567"), "has id"), format)
     }
 
     "support seq" in {

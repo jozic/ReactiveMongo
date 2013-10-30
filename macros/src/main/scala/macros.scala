@@ -120,6 +120,11 @@ private object MacroImpl {
       val values = constructor.paramss.head map {
         param =>
           val sig = param.typeSignature
+          val is_id = param.name.toString == "_id" && sig =:= typeOf[Option[String]]
+          if (is_id){
+            c.echo(c.enclosingPosition, "has _id of type Option[String]")
+          }
+
           val optTyp = optionTypeParameter(sig)
           val typ = optTyp getOrElse sig
 

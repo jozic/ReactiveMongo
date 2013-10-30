@@ -106,6 +106,9 @@ object Macros {
     /** Print out generated code during compilation. */
     trait Verbose extends Default
 
+    /** Serialize/deserialize field '_id: Option[String]' to/from ObjectId. */
+    trait WithObjectID extends Default
+
     /**
      * In `write` method also store class name(dynamic type) as a string
      * in a property named "className".
