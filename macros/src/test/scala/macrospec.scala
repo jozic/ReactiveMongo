@@ -1,6 +1,5 @@
 import reactivemongo.bson._
 import org.specs2.mutable._
-import reactivemongo.bson.Macros.Options.Verbose
 
 class Macros extends Specification {
   type Handler[A] = BSONDocumentReader[A] with BSONDocumentWriter[A]  with BSONHandler[BSONDocument, A]
@@ -125,10 +124,26 @@ class Macros extends Specification {
       roundtrip(none, format)
     }
 
-    "support mongo ObjectID" in {
-      val format = Macros.handlerOpts[HasID, Verbose]
-      roundtrip(HasID(None, "no _id"), format)
-      roundtrip(HasID(Some("1234567"), "has id"), format)
+    "support mongo ObjectID on read" in {
+      val _id = "123" * 8
+      val HasIDDoc = BSONDocument("_id" -> BSONObjectID(_id), "name" -> "test")
+      val hasID = Macros.reader[HasID].read(HasIDDoc)
+
+      hasID._id mustEqual Some(_id)
+      hasID.name mustEqual "test"
+    }
+
+    "support mongo ObjectID on write" in {
+      val _id = "123" * 8
+      val writer = Macros.writer[HasID]
+
+      val hasNoId = writer.write(HasID(None, "test"))
+      hasNoId.get("_id") mustEqual None
+
+      val hasId = writer.write(HasID(Some(_id), "test"))
+      hasId.getAs[BSONObjectID]("_id").get.stringify mustEqual _id
+
+      writer.write(HasID(Some("1" * 25), "test")) must throwA[Exception]
     }
 
     "support seq" in {

@@ -121,10 +121,6 @@ private object MacroImpl {
         param =>
           val sig = param.typeSignature
           val is_id = param.name.toString == "_id" && sig =:= typeOf[Option[String]]
-          if (is_id){
-            c.echo(c.enclosingPosition, "has _id of type Option[String]")
-          }
-
           val optTyp = optionTypeParameter(sig)
           val typ = optTyp getOrElse sig
 
@@ -137,7 +133,9 @@ private object MacroImpl {
             List(Literal(Constant(param.name.toString)))
           )
 
-          if (optTyp.isDefined)
+          if (is_id)
+            c.parse( """document.getAs[BSONObjectID]("_id").map(_.stringify)""")
+          else if (optTyp.isDefined)
             getter
           else
             Select(getter, "get")
